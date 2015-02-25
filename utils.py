@@ -25,7 +25,7 @@ class app(object):
     def getDataForMap(self, html):
         HRNMap = {} 
         NameMap = {}
-        soup = bs4.BeautifulSoup(html)
+        soup = bs4.BeautifulSoup(html, "html.parser")
         demo = soup.contents[3].contents[1].contents[1].contents[1].contents[1]
         self.HRNMap[self.key] = str(demo.contents[7].contents)
         self.NameMap[self.key] = str(demo.contents[3].contents)
@@ -33,11 +33,11 @@ class app(object):
     def parseHTML(self):
         f = file
         with open(self.inFile, 'r') as f:
-            
             text = str(f.read()).strip('\n')
             startIndex = text.find('<body>') + 6
             stopIndex = text.find('</body>')
             text = text[startIndex: stopIndex]
+            #print(text)
             delim = text.split('<br />')
             counter = 1
             temp = ''
@@ -54,7 +54,6 @@ class app(object):
                     temp = ''
                     counter = 1
                     self.key += 1
-                    
                 temp += br
 
 
