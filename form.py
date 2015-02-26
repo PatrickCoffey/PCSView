@@ -9,9 +9,11 @@
 import Tkinter
 import webbrowser
 import tkFileDialog
+import tkSimpleDialog
 import bs4
 from HTMLParser import HTMLParser
 import itertools
+import utils
 
 class form(Tkinter.Tk):
     """
@@ -81,13 +83,13 @@ class mainForm(form):
         self.table.grid(column=0, row=5, rowspan=5, columnspan=4, sticky='EW')
         
         # set bottom buttons
-        self.btnFirst = Tkinter.Button(self, text=u"First")
+        self.btnFirst = Tkinter.Button(self, text=u"First", command=self._first)
         self.btnFirst.grid(column=0, row=10, columnspan=1, sticky='EW')
-        self.btnPrev = Tkinter.Button(self, text=u"Prev")
+        self.btnPrev = Tkinter.Button(self, text=u"Prev", command=self._prev)
         self.btnPrev.grid(column=1, row=10, columnspan=1, sticky='EW')
-        self.btnNext = Tkinter.Button(self, text=u"Next")
+        self.btnNext = Tkinter.Button(self, text=u"Next", command=self._next)
         self.btnNext.grid(column=2, row=10, columnspan=1, sticky='EW')
-        self.btnLast = Tkinter.Button(self, text=u"Last")
+        self.btnLast = Tkinter.Button(self, text=u"Last", command=self._last)
         self.btnLast.grid(column=3, row=10, columnspan=1, sticky='EW')
         
         # Resize controls with window resize
@@ -97,11 +99,32 @@ class mainForm(form):
         self.grid_columnconfigure(3,weight=1,minsize=100)
         
     def loadData(self):
-        self.HTMLFile = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
-        self.parseHTML()
+        #self.HTMLFile = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
+        encodedFilename = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
+        passwd = tkSimpleDialog.askstring('Enter Password', 'Please Enter the password.\n\nNote: make sure it is correct!')
+        with open(encodedFilename, 'rb') as f:
+            HTMLRaw = utils.decrypt(f, passwd)
+        self.parseHTML(HTMLRaw)
     
     def _first(self):
-        pass
+        self.page = 0
+        self.updateTable()
+        
+    def _prev(self):
+        self.page += -1
+        if self.page < 0:
+            self.page = 0
+        self.updateTable()
+        
+    def _next(self):
+        self.page += 1
+        if self.page > (len(self.pages) - 1):
+            self.page = len(self.pages) - 1
+        self.updateTable() 
+        
+    def _last(self):
+        self.page = len(self.pages) - 1
+        self.updateTable()
     
     def refresh(self):
         tempHRN = self.tbHRN.get()
@@ -136,7 +159,33 @@ class mainForm(form):
             if isinstance(self.NameMap[self.key], list):
                 self.NameMap[self.key] = str(self.NameMap[self.key][0])
 
-    def parseHTML(self):
+    def parseHTML(self, text=None):
+        if text == None:
+            return None
+        text = str(text).strip('\n')
+        startIndex = text.find('<body>') + 6
+        stopIndex = text.find('</body>')
+        text = text[startIndex: stopIndex]
+        #print(text)
+        delim = text.split('<br />')
+        counter = 1
+        temp = ''
+        self.key = 0         
+        for br in delim:
+            #print("+++" + str(counter) + br)
+            if br == '\n':
+                continue
+            if counter == 1:
+                self.getDataForMap(br)
+            counter += 1
+            if counter == 12:
+                self.clients[self.key] = temp
+                temp = ''
+                counter = 1
+                self.key += 1
+            temp += br
+                
+    def parseHTMLFile(self):
         f = file
         with open(self.HTMLFile, 'r') as f:
             text = str(f.read()).strip('\n')
@@ -184,13 +233,15 @@ class mainForm(form):
     
     def updateTable(self):
         row = 1
-        for res in self.pages[self.page]:
-            key = res[0]
-            hrn = res[1]
-            name = res[2]
-            self.table.set(row, 0, hrn)
-            self.table.set(row, 1, name)
-            row += row
+        if self.pages != []:
+            self.clearTable()
+            for res in self.pages[self.page]:
+                key = res[0]
+                hrn = res[1]
+                name = res[2]
+                self.table.set(row, 0, hrn)
+                self.table.set(row, 1, name)
+                row += 1
             
     def clearTable(self):
         self.table.clear()

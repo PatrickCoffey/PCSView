@@ -120,7 +120,7 @@ def decrypt(in_file, password, key_length=32):
     with open(in_filename, 'rb') as in_file:
         decrypted = decrypt(in_file, password)
     """
-    ret = ''
+    ret = u''
     bs = AES.block_size
     salt = in_file.read(bs)[len('Salted__'):]
     key, iv = derive_key_and_iv(password, salt, key_length, bs)
@@ -134,7 +134,7 @@ def decrypt(in_file, password, key_length=32):
             chunk = chunk[:-padding_length]
             finished = True
         ret += chunk
-    return chunk
+    return ret
 
 def derive_key_and_iv(password, salt, key_length, iv_length):
     d = d_i = ''
@@ -143,3 +143,10 @@ def derive_key_and_iv(password, salt, key_length, iv_length):
         d += d_i
     return d[:key_length], d[key_length:key_length+iv_length]
 
+
+if __name__ == '__main__':
+    password = 'derp'
+    in_filename = 'test.enc.html'
+    out_filename = 'test.dec.html'
+    with open(in_filename, 'rb') as in_file, open(out_filename, 'wb') as out_file:
+        decryptToFile(in_file, out_file, password)
