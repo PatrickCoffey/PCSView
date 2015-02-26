@@ -1,17 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# 
-# TLRTools- lib/TLRCombined.py
-# ----------------------------
-# This handles the filling of combined reports
+# PCSView - indivPerson
+# ---------------------
+# This is the individual client class
 
 from indivPerson import IndivPerson
 from utils import *
 from form import mainForm
-import Tkinter
 
-    
 if __name__=='__main__':
     test = mainForm(None)
     test.title('Main.py')

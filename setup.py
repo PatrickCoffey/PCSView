@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# 
-# TLRTools- lib/TLRCombined.py
-# ----------------------------
-# This handles the filling of combined reports
+# PCSView - indivPerson
+# ---------------------
+# This is the individual client class
 
 from distutils.core import setup
 import py2exe

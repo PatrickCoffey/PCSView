@@ -12,50 +12,6 @@ from Crypto.Cipher import AES
 from Crypto import Random
 from HTMLParser import HTMLParser
 
-class app(object):
-    inFile = ''
-    HRNMap = {}
-    NameMap = {}
-    clients = {}
-    
-    def __init__(self, inFile='test.html'):
-        self.inFile = inFile
-        self.parseHTML
-
-    def getDataForMap(self, html):
-        HRNMap = {} 
-        NameMap = {}
-        soup = bs4.BeautifulSoup(html, "html.parser")
-        demo = soup.contents[3].contents[1].contents[1].contents[1].contents[1]
-        self.HRNMap[self.key] = str(demo.contents[7].contents)
-        self.NameMap[self.key] = str(demo.contents[3].contents)
-
-    def parseHTML(self):
-        f = file
-        with open(self.inFile, 'r') as f:
-            text = str(f.read()).strip('\n')
-            startIndex = text.find('<body>') + 6
-            stopIndex = text.find('</body>')
-            text = text[startIndex: stopIndex]
-            #print(text)
-            delim = text.split('<br />')
-            counter = 1
-            temp = ''
-            self.key = 0         
-            for br in delim:
-                #print("+++" + str(counter) + br)
-                if br == '\n':
-                    continue
-                if counter == 1:
-                    self.getDataForMap(br)
-                counter += 1
-                if counter == 12:
-                    self.clients[self.key] = temp
-                    temp = ''
-                    counter = 1
-                    self.key += 1
-                temp += br
-
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -187,13 +143,3 @@ def derive_key_and_iv(password, salt, key_length, iv_length):
         d += d_i
     return d[:key_length], d[key_length:key_length+iv_length]
 
-if __name__ == '__main__':
-
-    test = app()
-    test.parseHTML()
-    for key, client in test.clients.iteritems():
-        print('STARTSTARTSTARTSTARTSTARTSTARTSTARTSTARTSTART')
-        print('HRN: ' + str(test.HRNMap[key]))
-        print('Name: ' + str(test.NameMap[key]))
-        print(client)
-        print('ENDENDENDENDENDENDENDENDENDENDENDENDENDENDEND')
