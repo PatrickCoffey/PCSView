@@ -12,7 +12,6 @@ from Crypto.Cipher import AES
 from Crypto import Random
 from HTMLParser import HTMLParser
 
-
 class MLStripper(HTMLParser):
     def __init__(self):
         self.reset()
@@ -146,7 +145,10 @@ def derive_key_and_iv(password, salt, key_length, iv_length):
 
 if __name__ == '__main__':
     password = 'derp'
-    in_filename = 'test.enc.html'
-    out_filename = 'test.dec.html'
-    with open(in_filename, 'rb') as in_file, open(out_filename, 'wb') as out_file:
+    in_filename = 'test2.html'
+    enc_filename = 'test2.enc.html'
+    dec_filename = 'test2.dec.html'
+    with open(in_filename, 'rb') as in_file, open(enc_filename, 'wb') as out_file:
+        encryptToFile(in_file, out_file, password)
+    with open(enc_filename, 'rb') as in_file, open(dec_filename, 'wb') as out_file:
         decryptToFile(in_file, out_file, password)
