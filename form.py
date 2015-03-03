@@ -12,12 +12,21 @@ import tkFileDialog
 import tkSimpleDialog
 import tkMessageBox
 #import BeautifulSoup as bs4
-import bs4
+#import bs4
 from HTMLParser import HTMLParser
 import itertools
 import utils
 import tempfile
 import os
+
+try:
+    import bs4
+except ImportError:
+    try:
+        import beautifulsoup
+    except ImportError as e:
+        raise e
+
 
 class form(Tkinter.Tk):
     """
@@ -114,17 +123,17 @@ class mainForm(form):
     def loadData(self):
         '''Loads data'''
         #self.HTMLFile = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
-        encodedFilename = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
+        encodedFilename = tkFileDialog.askopenfilename(defaultextension='.html', filetypes=[('encrypted html','*.enc.html'), ('All Files','*.*')], title='Choose Mass Client Summary', parent=self)
         if encodedFilename:
             if str(encodedFilename).find('.enc.html') == -1:
                 tkMessageBox.showerror(title='Please Select Encoded File!', message='You have selected the incorrect type of file.\n\nPlease select the most recent *.enc.html file that You have been provided with.')
                 return
-            passwd = tkSimpleDialog.askstring('Enter Password', 'Please Enter the password.\n\nNote: This application cannot tell if it is correct, please ensure it is!')
-            tkMessageBox.showinfo(title='Please be Patient!', message='This is a huge file!\n\nPlease be patient this can take up to 5 minutes to parse!')
+            passwd = tkSimpleDialog.askstring('Enter Password', 'Please Enter the password for this file:')
+            tkMessageBox.showinfo(title='Big File Warning', message='This is a large file!\n\nFile will now be parsed and can take upto 5 Minutes.')
             with open(encodedFilename, 'rb') as f:
                 HTMLRaw = utils.decrypt(f, passwd)
             if HTMLRaw == None:
-                tkMessageBox.showerror(title='Error with password!', message='The password entered was incorrect or the file has been corrupted. Please ensure you are typing the correct password.\n\nThank you!')
+                tkMessageBox.showerror(title='Error Decrypting!', message='The password entered was incorrect or the file has been corrupted.\n\nPlease ensure you are:\n    - typing the correct password\n    - caps lock is off\n\nThank you!')
             else:
                 self.parseHTML(HTMLRaw)
     
