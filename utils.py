@@ -6,6 +6,7 @@
 # ----------------------------
 # This handles the filling of combined reports
 
+#import BeautifulSoup as bs4
 import bs4
 from hashlib import md5
 from Crypto.Cipher import AES
@@ -119,21 +120,25 @@ def decrypt(in_file, password, key_length=32):
     with open(in_filename, 'rb') as in_file:
         decrypted = decrypt(in_file, password)
     """
-    ret = u''
-    bs = AES.block_size
-    salt = in_file.read(bs)[len('Salted__'):]
-    key, iv = derive_key_and_iv(password, salt, key_length, bs)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    next_chunk = ''
-    finished = False
-    while not finished:
-        chunk, next_chunk = next_chunk, cipher.decrypt(in_file.read(1024 * bs))
-        if len(next_chunk) == 0:
-            padding_length = ord(chunk[-1])
-            chunk = chunk[:-padding_length]
-            finished = True
-        ret += chunk
-    return ret
+    try:
+        ret = u''
+        bs = AES.block_size
+        salt = in_file.read(bs)[len('Salted__'):]
+        key, iv = derive_key_and_iv(password, salt, key_length, bs)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        next_chunk = ''
+        finished = False
+        while not finished:
+            chunk, next_chunk = next_chunk, cipher.decrypt(in_file.read(1024 * bs))
+            if len(next_chunk) == 0:
+                padding_length = ord(chunk[-1])
+                chunk = chunk[:-padding_length]
+                finished = True
+            ret += chunk
+    except UnicodeDecodeError:
+        return None
+    else:
+        return ret
 
 def derive_key_and_iv(password, salt, key_length, iv_length):
     d = d_i = ''
@@ -145,9 +150,9 @@ def derive_key_and_iv(password, salt, key_length, iv_length):
 
 if __name__ == '__main__':
     password = 'derp'
-    in_filename = 'test2.html'
-    enc_filename = 'test2.enc.html'
-    dec_filename = 'test2.dec.html'
+    in_filename = 'test.html'
+    enc_filename = 'test.enc.html'
+    dec_filename = 'test.dec.html'
     with open(in_filename, 'rb') as in_file, open(enc_filename, 'wb') as out_file:
         encryptToFile(in_file, out_file, password)
     with open(enc_filename, 'rb') as in_file, open(dec_filename, 'wb') as out_file:

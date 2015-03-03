@@ -18,7 +18,7 @@ class Demographics(object):
     NOK = ''
     medicareNumber = ''
     medicareExp = ''
-    
+
     def __init__(self, firstName, lastName, gender, indigStatus, NOK, medicareNumber, medicareExp):
         self.firstName = firstName
         self.lastName = lastName
@@ -37,7 +37,7 @@ class NB(object):
     provider = ''
     notes = ''
     date = ''
-    
+
     def __init__(self, provider, notes, date):
         self.provider = provider
         self.notes = notes
@@ -53,7 +53,7 @@ class Alert(object):
     actDate = ''
     alertType = ''
     notes = ''
-    
+
     def __init__(self, actDate, alertType, notes):
         self.actDate = actDate
         self.alertType = alterType
@@ -70,7 +70,7 @@ class Issue(object):
     problem = ''
     onset = ''
     status = ''
-    
+
     def __init__(self, diagDate, problem, onset, status):
         self.diagDate = diagDate
         self.problem = problem
@@ -86,7 +86,7 @@ class Medication(object):
     """
     name = ''
     dosageInst = ''
-    
+
     def __init__(self, name, dosageInst):
         self.name = name
         self.dosageInst = dosageInst
@@ -102,7 +102,7 @@ class Recall(object):
     notes = ''
     dueDate = ''
     provGroup = ''
-        
+
     def __init__(self, item, dueDate, provGroup, notes):
         self.item = item
         self.dueDate = dueDate
@@ -144,49 +144,49 @@ class IndivPerson(object):
     recallOverdue = []
     recall = []
     imms = []
-    
+
     def __init__(self, clientID=0):
         self.clientID = clientID
-    
+
     def setDemographics(self, firstName, lastName, gender, indigStatus, NOK, medicareNumber=None, medicareExp=None):
         """Pretty much mandatory, demographics are like the metadata for a client"""
         self.demographics = Demographics(firstName, lastName, gender, indigStatus, NOK, medicareNumber, medicareExp)
-    
+
     def addNB(self, provider, notes, date):
         """Adds NB's to the clients file"""
         self.NBs.append(NB(provider, notes, date))
-        
+
     def addDrugAllergy(self, actDate, alertType, notes):
         self.drugAllergies.append(Alert(actDate, alertType, notes))
-        
+
     def addOtherAlert(self, actDate, alertType, notes):
         self.otherAlerts.append(Alert(actDate, alertType, notes))
-        
+
     def addRisk(self, actDate, alertType, notes):
         self.risks.append(Alert(actDate, alertType, notes))
-        
+
     def addPastHx(self, diagDate, problem, onset, status):
         self.pastHx.append(Issue(diagDate, problem, onset, status))
-        
+
     def addCurrentProb(self, diagDate, problem, onset, status):
         self.currentProb.append(Issue(diagDate, problem, onset, status))
-    
+
     def addLongMed(self, name, dosageInst):
         self.longMed.append(Medication(name, dosageInst))
-        
+
     def addShortMed(self, name, dosageInst):
         self.shortMed.append(Medication(name, dosageInst))
-        
+
     def addRecallOverdue(self, item, dueDate, provGroup, notes):
         self.recallOverdue.append(Recall(item, dueDate, provGroup, notes))
 
     def addRecall(self, item, dueDate, provGroup, notes):
         self.recall.append(Recall(item, dueDate, provGroup, notes))
-        
+
     def addImm(self, date, immName, prov):
         self.imms.append(Imm(date, immName, prov))
 
-        
+
 if __name__=='__main__':
     test = IndivPerson(1234567)
     test.addNB('Noob, Derp', 'A whole bunch of free text cus doctors love that shit...', '1/1/2015')

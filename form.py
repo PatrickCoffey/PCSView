@@ -10,6 +10,8 @@ import Tkinter
 import webbrowser
 import tkFileDialog
 import tkSimpleDialog
+import tkMessageBox
+#import BeautifulSoup as bs4
 import bs4
 from HTMLParser import HTMLParser
 import itertools
@@ -40,6 +42,7 @@ class mainForm(form):
     --------
     This is the application
     """
+    
     currHRN = ''
     currName = ''
     currHTML = ''
@@ -49,13 +52,14 @@ class mainForm(form):
     clients = {}
     pages = []
     page = 0
+    
     def initialise(self):
         # set up temp dir
         self.tempDir = tempfile.gettempdir()
         self.tempFileURL = os.path.join(self.tempDir, 'currClient.html')
         
         # Set grid
-        self.grid()
+        self.grid(widthInc=400, heightInc=220)
         
         # Set menubar
         self.menubar = Tkinter.Menu(self)
@@ -68,52 +72,61 @@ class mainForm(form):
         
         # set textentry
         self.tbHRN = Tkinter.Entry(self)
-        self.tbHRN.grid(column=0, row=1, columnspan=2, sticky='EW')
+        self.tbHRN.grid(column=0, row=1, columnspan=2, sticky='WENS')
         self.tbName = Tkinter.Entry(self)
-        self.tbName.grid(column=0, row=3, columnspan=2, sticky='EW')
+        self.tbName.grid(column=0, row=3, columnspan=2, sticky='WENS')
         
         # set label
         lblHRN = Tkinter.Label(self, text="HRN:", anchor="w")
-        lblHRN.grid(column=0, row=0, columnspan=2, sticky='EW')
+        lblHRN.grid(column=0, row=0, columnspan=2, sticky='WENS')
         lblName = Tkinter.Label(self, text="Name:", anchor="w")
-        lblName.grid(column=0, row=2, columnspan=2, sticky='EW')
+        lblName.grid(column=0, row=2, columnspan=2, sticky='WENS')
         
         # set top buttons
         self.btnSearch = Tkinter.Button(self, text=u"Search", command=self.refresh)
-        self.btnSearch.grid(column=3, row=2, columnspan=2)
+        self.btnSearch.grid(column=3, row=0, sticky='WENS')
         self.btnClear = Tkinter.Button(self, text=u"Clear", command=self.clearTable)
-        self.btnClear.grid(column=3, row=1, columnspan=2)
+        self.btnClear.grid(column=3, row=1, sticky='WENS')
         self.btnSelect = Tkinter.Button(self, text=u"Select", command=self.select)
-        self.btnSelect.grid(column=3, row=4, columnspan=2)
+        self.btnSelect.grid(column=3, row=3, sticky='WENS')
 
         # set Table
         self.table = SimpleTable(self)
-        self.table.grid(column=0, row=5, rowspan=5, columnspan=4, sticky='EW')
+        self.table.grid(column=0, row=5, rowspan=5, columnspan=4, sticky='WENS')
         
         # set bottom buttons
         self.btnFirst = Tkinter.Button(self, text=u"First", command=self._first)
-        self.btnFirst.grid(column=0, row=10, columnspan=1, sticky='EW')
+        self.btnFirst.grid(column=0, row=10, columnspan=1, sticky='WENS')
         self.btnPrev = Tkinter.Button(self, text=u"Prev", command=self._prev)
-        self.btnPrev.grid(column=1, row=10, columnspan=1, sticky='EW')
+        self.btnPrev.grid(column=1, row=10, columnspan=1, sticky='WENS')
         self.btnNext = Tkinter.Button(self, text=u"Next", command=self._next)
-        self.btnNext.grid(column=2, row=10, columnspan=1, sticky='EW')
+        self.btnNext.grid(column=2, row=10, columnspan=1, sticky='WENS')
         self.btnLast = Tkinter.Button(self, text=u"Last", command=self._last)
-        self.btnLast.grid(column=3, row=10, columnspan=1, sticky='EW')
+        self.btnLast.grid(column=3, row=10, columnspan=1, sticky='WENS')
         
         # Resize controls with window resize
-        self.grid_columnconfigure(0,weight=1,minsize=100)
-        self.grid_columnconfigure(1,weight=1,minsize=100)
-        self.grid_columnconfigure(2,weight=1,minsize=100)
-        self.grid_columnconfigure(3,weight=1,minsize=100)
+        for i in range(4):
+            self.grid_columnconfigure(i,weight=1,minsize=100)
+
+        for i in range(11):
+            self.grid_rowconfigure(i,weight=1,minsize=20)
         
     def loadData(self):
         '''Loads data'''
         #self.HTMLFile = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
         encodedFilename = tkFileDialog.askopenfilename(defaultextension='.html', initialdir='C:/temp/', title='Choose Mass Client Summary', parent=self)
-        passwd = tkSimpleDialog.askstring('Enter Password', 'Please Enter the password.\n\nNote: make sure it is correct!')
-        with open(encodedFilename, 'rb') as f:
-            HTMLRaw = utils.decrypt(f, passwd)
-        self.parseDIV(HTMLRaw)
+        if encodedFilename:
+            if str(encodedFilename).find('.enc.html') == -1:
+                tkMessageBox.showerror(title='Please Select Encoded File!', message='You have selected the incorrect type of file.\n\nPlease select the most recent *.enc.html file that You have been provided with.')
+                return
+            passwd = tkSimpleDialog.askstring('Enter Password', 'Please Enter the password.\n\nNote: This application cannot tell if it is correct, please ensure it is!')
+            tkMessageBox.showinfo(title='Please be Patient!', message='This is a huge file!\n\nPlease be patient this can take up to 5 minutes to parse!')
+            with open(encodedFilename, 'rb') as f:
+                HTMLRaw = utils.decrypt(f, passwd)
+            if HTMLRaw == None:
+                tkMessageBox.showerror(title='Error with password!', message='The password entered was incorrect or the file has been corrupted. Please ensure you are typing the correct password.\n\nThank you!')
+            else:
+                self.parseHTML(HTMLRaw)
     
     def _first(self):
         self.page = 0
@@ -166,22 +179,30 @@ class mainForm(form):
         NameMap = {}
         if html == '\r\n' or html == '\n\n' or html == '\n':
             return
+        html = str(html).replace('\r\n', '')
+        html = str(html).replace('\n', '')
+        html = str(html).replace(' <', '<')
+        html = str(html).strip()
         soup = bs4.BeautifulSoup(html, "html.parser")
-        demo = soup.contents[3].contents[1].contents[1].contents[1].contents[1]
-        
-        self.HRNMap[self.key] = demo.contents[7].contents
+        if len(str(soup)) < 10:
+            return
+        demo = soup.contents[0].contents[1].contents[0].contents[0].contents[0].contents[0]
+
+        self.HRNMap[self.key] = demo.contents[3].contents
         if len(self.HRNMap[self.key]) == 0:
             self.HRNMap[self.key] = ''
         else:
             if isinstance(self.HRNMap[self.key], list):
                 self.HRNMap[self.key] = str(self.HRNMap[self.key][0])
         
-        self.NameMap[self.key] = demo.contents[3].contents
+        self.NameMap[self.key] = demo.contents[1].contents
         if len(self.NameMap[self.key]) == 0:
             self.NameMap[self.key] = ''
         else:
             if isinstance(self.NameMap[self.key], list):
                 self.NameMap[self.key] = str(self.NameMap[self.key][0])
+        html = ''
+        soup = None
 
     def parseHTML(self, text=None):
         if text == None:
@@ -202,7 +223,7 @@ class mainForm(form):
             counter += 1
             temp += br
             if counter == 1:
-                self.getDataForMap(br)
+                self.getDataForMap(str(br).strip('\n'))
             if counter == 11:
                 self.clients[self.key] = temp
                 temp = ''
@@ -216,8 +237,8 @@ class mainForm(form):
         startIndex = text.find('<body>') + 6
         stopIndex = text.find('</body>')
         text = text[startIndex: stopIndex]
-        for client in text.find() findall('DIV'):
-            print(client)
+        #for client in text.find() findall('DIV'):
+            #print(client)
 
     def parseHTMLFile(self):
         f = file
@@ -246,6 +267,9 @@ class mainForm(form):
                 temp += br
                 
     def getClient(self):
+        self.results = []
+        self.page = 0
+        self.pages = []
         if self.currHRN != None:
             for key, hrn in self.HRNMap.iteritems():
                 if hrn == self.currHRN:
@@ -309,8 +333,12 @@ class SimpleTable(Tkinter.Frame):
                 current_row.append(label)
             self._widgets.append(current_row)
 
-        for column in range(columns):
-            self.grid_columnconfigure(column, weight=1)
+        # Resize controls with window resize
+        for i in range(self.columns):
+            self.grid_columnconfigure(i,weight=1)
+
+        for i in range(self.rows):
+            self.grid_rowconfigure(i,weight=1,minsize=20)        
         self.set(0, 0, 'HRN')
         self.set(0, 1, 'Name')
         
@@ -327,3 +355,7 @@ class SimpleTable(Tkinter.Frame):
     def set(self, row, column, value):
         widget = self._widgets[row][column]
         widget.configure(text=value)
+        
+        
+if __name__ == '__main__':
+    pass
