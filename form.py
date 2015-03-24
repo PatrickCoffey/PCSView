@@ -11,13 +11,12 @@ import webbrowser
 import tkFileDialog
 import tkSimpleDialog
 import tkMessageBox
-#import BeautifulSoup as bs4
-#import bs4
 from HTMLParser import HTMLParser
 import itertools
 import utils
 import tempfile
 import os
+import sys
 
 try:
     import bs4
@@ -74,6 +73,8 @@ class mainForm(form):
         self.menubar = Tkinter.Menu(self)
         filemenu = Tkinter.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Open", command=self.loadData)
+        filemenu.add_separator()
+        filemenu.add_command(label="Show Help...", command=self._showHelp)
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=self.quit)
         self.menubar.add_cascade(label='File', menu=filemenu)
@@ -170,6 +171,9 @@ class mainForm(form):
             f.write(self.currHTML)
         webbrowser.open(self.tempFileURL)
     
+    def _showHelp(self):
+        webbrowser.open(os.path.join(os.path.dirname(sys.argv[0]), 'tutorial', 'Using PCS View.htm'))
+    
     def refresh(self):
         tempHRN = self.tbHRN.get()
         if tempHRN == '':
@@ -238,6 +242,7 @@ class mainForm(form):
                 temp = ''
                 counter = 0
                 self.key += 1
+        self.title('PCS Viewer - Data loaded!')
 
     def parseDIV(self, text=None):
         if text == None:
@@ -274,7 +279,7 @@ class mainForm(form):
                     counter = 1
                     self.key += 1
                 temp += br
-                
+
     def getClient(self):
         self.results = []
         self.page = 0
@@ -285,30 +290,34 @@ class mainForm(form):
                     self.results.append([key, hrn, self.NameMap[key]])
         if len(self.results) == 0:
             if self.currName != None:
+                searchName = str(self.currName).strip().strip(',').lower().split()
                 for key, name in self.NameMap.iteritems():
-                    if self.currName in name:
-                        self.results.append([key, self.HRNMap[key], name])
+                    for sName in searchName:
+                        if sName in str(name).lower():
+                            self.results.append([key, self.HRNMap[key], name])
         self._splitPages()
         self.updateTable()
-        
+
     def getCurrHTML(self):
         self.currHTML = ''
         if self.table.selected != None:
             for key, name in self.NameMap.iteritems():
                 if name == self.table.selected:
-                    self.table.selected = self.HRNMap[key]            
+                    #self.table.selected = self.HRNMap[key]
+                    self.table.selected = key
             for key, hrn in self.HRNMap.iteritems():
                 if hrn == self.table.selected:
-                    self.currHTML = self.clients[key]
-                    return
+                    #self.currHTML = self.clients[key]
+                    self.table.selected = key
+        self.currHTML = self.clients[self.table.selected]
 
     def _splitPages(self, size=4):
         it = iter(self.results)
         item = list(itertools.islice(it, size))
         while item:
             self.pages.append(item)
-            item = list(itertools.islice(it, size))        
-    
+            item = list(itertools.islice(it, size))
+
     def updateTable(self):
         row = 1
         if self.pages != []:
@@ -320,12 +329,12 @@ class mainForm(form):
                 self.table.set(row, 0, hrn)
                 self.table.set(row, 1, name)
                 row += 1
-            
+
     def clearTable(self):
         self.table.clear()
-        
+
 class SimpleTable(Tkinter.Frame):
-    
+
     def __init__(self, parent, rows=5, columns=2):
         # use black background so it "peeks through" to 
         # form grid lines
@@ -350,11 +359,11 @@ class SimpleTable(Tkinter.Frame):
             self.grid_rowconfigure(i,weight=1,minsize=20)        
         self.set(0, 0, 'HRN')
         self.set(0, 1, 'Name')
-        
+
     def _tableClick(self, event):
         text = event.widget.cget('text')
         self.selected = text
-  
+
     def clear(self):
         for row in range(1, self.rows):
             for col in range(self.columns):
@@ -365,6 +374,6 @@ class SimpleTable(Tkinter.Frame):
         widget = self._widgets[row][column]
         widget.configure(text=value)
         
-        
+
 if __name__ == '__main__':
     pass

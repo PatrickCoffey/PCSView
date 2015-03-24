@@ -8,10 +8,13 @@
 from distutils.core import setup
 import py2exe
 from glob import glob
+import os
+import sys
 
-data_files = [("Microsoft.VC90.CRT", glob(r'C:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\*.*'))]
+
+data_files = [("tutorial", glob(os.path.join(os.path.dirname(sys.argv[0]), 'tutorial', 'Using PCS View.htm'))),
+              ("tutorial/Using PCS View_files", glob(os.path.join(os.path.dirname(sys.argv[0]), 'tutorial', 'Using PCS View_files', '*.*')))]
 setup(
     data_files=data_files,
-    #console=['main.py'],
-    windows=['main.py']
+    windows=['PCSView.py']
 )
